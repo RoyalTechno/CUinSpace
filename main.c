@@ -24,9 +24,12 @@ int main() {
     unsigned char status_id;
     unsigned char status_value;
     unsigned int data;
+    unsigned char filter[8];
     char cur_name[MAX_STR];
     SubsystemCollection systems;
     subsys_collection_init(&systems);
+    SubsystemCollection filtered_systems;
+    subsys_collection_init(&filtered_systems);
     
     while (print_menu(&query)==ERR_SUCCESS){
     	if (query==MENU_ADD){
@@ -39,6 +42,7 @@ int main() {
 		    result = subsys_append(&systems,&cur_sys);
 		    if(result==ERR_MAX_CAPACITY){
 		    	printf("Error: Max System Capacity Reached.\n");
+		    	continue;
 		    }
 		    printf("System added successfully.\n");
 		    
@@ -49,7 +53,7 @@ int main() {
 		    //print cur_name system in collection
 		    result = subsys_find(&systems,cur_name);
 		    if (result==ERR_SYS_NOT_FOUND){
-		    	printf("Error: System Not Found. Please try again.\n");
+		    	printf("Error: Subsystem Not Found. Please try again.\n");
 		    	continue;
 		    }
 		    printf("\n");
@@ -58,7 +62,10 @@ int main() {
     	} else if (query==MENU_PRINTALL){
     		//print all subsystems in collection
 		    printf("\n");
-    		subsys_collection_print(&systems);
+    		result = subsys_collection_print(&systems);
+    		if(result==ERR_NO_DATA){
+    			printf("No subsystems to print.\n");
+    		}
     		
     	} else if (query==MENU_STATUS){
     		printf("Enter: <Subsystem Name> <Status ID, 7,6,5,4,2, or 0)> <New Value (0-3)>: ");
@@ -67,19 +74,44 @@ int main() {
 		    //find valid system
 		    result = subsys_find(&systems,cur_name);
 		    if (result==ERR_SYS_NOT_FOUND){
-		    	printf("Error: System Not Found. Please try again.\n");
+		    	printf("Error: Subsystem Not Found. Please try again.\n");
 		    	continue;
 		    } //set status of system
 		    result = subsys_status_set(&(systems.subsystems[result]),status_id,status_value);
 		    if (result==ERR_INVALID_STATUS){
 		    	printf("Error: Status ID or Value Invalid. Please try again.\n");
+		    	continue;
 		    }
 		    printf("Status updated successfully.\n");
 		    
     	} else if (query==MENU_REMOVE){
-    	
+    		printf("Enter subsystem name to remove: ");
+		    scanf("%s", cur_name);
+		    while (getchar() != '\n');
+		    //find index in collection and remove
+		    result = subsys_remove(&systems,subsys_find(&systems,cur_name));
+		    if (result==ERR_INVALID_INDEX){
+		    	printf("Error: Subsystem Not Found. Please try again.\n");
+		    	continue;
+		    }
+		    printf("Removed subsystem successfully.\n");
+		    
     	} else if (query==MENU_FILTER){
-    	
+    		printf("Enter filter string (8 characters of 1, 0, *): ");
+		    scanf("%s",filter);
+		    while (getchar() != '\n');
+		    //filter systems in main collection
+    		result = subsys_filter(&systems,&filtered_systems,filter);
+    		if (result==ERR_NO_DATA){
+    			printf("Error: Invalid Filter Provided. Please try again.\n");
+    			continue;
+    		}  //print all subsystems in collection
+		    printf("\n");
+    		result = subsys_collection_print(&filtered_systems);
+    		if (result==ERR_NO_DATA){
+    			printf("No subsystems to prints.\n");
+    		}
+    		
     	} else if (query==MENU_DATA){
     		printf("Enter: <Subsystem Name> <Data, uppercase hex without 0x>: ");
 		    scanf("%s %X",cur_name,&data);
@@ -87,7 +119,7 @@ int main() {
     		//find valid system
 		    result = subsys_find(&systems,cur_name);
 		    if (result==ERR_SYS_NOT_FOUND){
-		    	printf("Error: System Not Found. Please try again.\n");
+		    	printf("Error: Subsystem Not Found. Please try again.\n");
 		    	continue;
 		    } //set data of system
 		    subsys_data_set(&(systems.subsystems[result]),data,NULL);
@@ -97,96 +129,7 @@ int main() {
     		break;
     	}	
     }
-    /*
-    Subsystem sub;
-    const char *n = "mike";
-    char j=0;
-    printf("subsystem test: %d\n",subsys_init(&sub,n,j));
     
-    Subsystem sub2;
-    const char *n2 = "john";
-    printf("subsystem test: %d\n",subsys_init(&sub2,n2,j));
-    
-    Subsystem sub3;
-    const char *n3 = "fella";
-    printf("subsystem test: %d\n",subsys_init(&sub3,n3,j));
-    
-    Subsystem sub4;
-    const char *n4 = "broski";
-    printf("subsystem test: %d\n",subsys_init(&sub4,n4,j));
-    
-    Subsystem sub5;
-    const char *n5 = "mate";
-    printf("subsystem test: %d\n",subsys_init(&sub5,n5,j));
-    
-    Subsystem sub6;
-    const char *n6 = "bro";
-    printf("subsystem test: %d\n",subsys_init(&sub6,n6,j));
-    
-    Subsystem sub7;
-    const char *n7 = "johnny";
-    printf("subsystem test: %d\n",subsys_init(&sub7,n7,j));
-    Subsystem sub8;
-    const char *n8 = "mo";
-    printf("subsystem test: %d\n",subsys_init(&sub8,n8,j));
-    Subsystem sub9;
-    const char *n9 = "pman";
-    printf("subsystem test: %d\n",subsys_init(&sub9,n9,j));
-    
-    SubsystemCollection col;
-    printf("collections test: %d\n",subsys_collection_init(&col));
-    printf("%d\n",col.size);
-    
-    printf("append test: %d\n",subsys_append(&col,&sub));
-    printf("%d\n",col.size);
-    printf("%s\n",col.subsystems[0].name);
-    printf("append test: %d\n",subsys_append(&col,&sub2));
-    printf("append test: %d\n",subsys_append(&col,&sub3));
-    printf("append test: %d\n",subsys_append(&col,&sub4));
-    printf("append test: %d\n",subsys_append(&col,&sub5));
-    printf("append test: %d\n",subsys_append(&col,&sub6));
-    printf("append test: %d\n",subsys_append(&col,&sub7));
-    printf("append test: %d\n",subsys_append(&col,&sub8));
-    printf("append test: %d\n",subsys_append(&col,&sub9));
-    const char *name = "bro";
-    printf("find test: %s is at index %d\n",name,subsys_find(&col,name));
-    subsys_collection_print(&col);
-    printf("status: %d\n",subsys_status_print(&sub));
-    unsigned char val = 0;
-    printf("status print test: %d\n",subsys_status_set(&sub,STATUS_POWER,val));
-    val = 2;
-    printf("status set test: %d\n",subsys_status_set(&sub,STATUS_DATA,val));
-    printf("status set test: %d\n",subsys_status_set(&sub,STATUS_ACTIVITY,val));
-    val = 0;
-    printf("status set test: %d\n",subsys_status_set(&sub,STATUS_ERROR,val));
-    val = 2;
-    printf("status set test: %d\n",subsys_status_set(&sub,STATUS_PERFORMANCE,val));
-    val = 1;
-    printf("status set test: %d\n",subsys_status_set(&sub,STATUS_RESOURCE,val));
-    printf("status print test: %d\n",subsys_status_print(&sub));
-    unsigned int old = 0;
-    printf("data set test: %d\n",subsys_data_set(&sub2,0x80FA,&old));
-    subsys_print(&sub2);
-    printf("old data: %u\n",old);
-    printf("data set test: %d\n",subsys_data_set(&sub2,2,&old));
-    subsys_print(&sub2);
-    printf("old data: %u\n",old);
-    printf("data set test w/ NULL: %d\n",subsys_data_set(&sub2,10,NULL));
-    subsys_print(&sub2);
-    printf("data get test: %d\n",subsys_data_get(&sub2,&old));
-    subsys_print(&sub2);
-    printf("data: %u\n",old);
-    printf("data get test: %d\n",subsys_data_get(&sub2,&old));
-    subsys_print(&sub2);
-    printf("data: %u\n",old);
-    printf("data set test: %d\n",subsys_data_set(&sub2,5,&old));
-    subsys_print(&sub2);
-    printf("data get test: %d\n",subsys_data_get(&sub2,&old));
-    subsys_print(&sub2);
-    printf("data: %u\n",old);
-    printf("data get test: %d\n",subsys_data_get(&sub2,&old));
-    subsys_print(&sub2);
-    */
     return ERR_SUCCESS;
 }
 

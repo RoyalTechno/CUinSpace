@@ -28,6 +28,7 @@ int subsys_collection_init(SubsystemCollection *subsystems){
 	
 	out: subsystems, appends subsystem to its array attribute
 	in: subsystem, subsystem to be added to collection array
+	
 	Returns: 
         - ERR_SUCCESS if there is no error
         - ERR_NULL_POINTER if subsystems or subsystem is NULL
@@ -92,14 +93,72 @@ int subsys_collection_print(SubsystemCollection *subsystems){
 	return ERR_SUCCESS;
 }
 
+/*
+	Removes subsystem at given index and keeps order by shifting
 
-
+	out: subsystems, collection from which to remove system at index
+	in: index, int specifying index of system to remove
+	
+	Returns:
+		- ERR_NULL_POINTER if subsystems is NULL
+		- ERR_INVALID_INDEX if index is outside of expected range
+		- ERR_SUCCESS if there is no error
+*/
 int subsys_remove(SubsystemCollection *subsystems, int index){
+	if (subsystems==NULL){
+		return ERR_NULL_POINTER;
+	}
+	if (index < 0 || index >= subsystems->size){
+		return ERR_INVALID_INDEX;
+	}
+	
+	for(int i=index; i<(subsystems->size)-1; i++){
+		subsystems->subsystems[i] = subsystems->subsystems[i+1];
+	}
+	subsystems->size--;
 	return ERR_SUCCESS;
 }
 
-
+/*
+	Outputs filtered collection of systems to dest according to filter
+	
+	in: src, collection of systems to filter
+	out: dest, collection to store filtered systems
+	in: filter, 8-character string specifying filtering
+	
+	Returns:
+		- ERR_NULL_POINTER if src or dest or filter is NULL
+		- ERR_SUCCESS if there is no error
+		- ERR_NO_DATA if the filter string is invalid
+*/
 int subsys_filter(const SubsystemCollection *src, SubsystemCollection *dest, const unsigned char *filter){
+	if (src==NULL||dest==NULL||filter==NULL){
+		return ERR_NULL_POINTER;
+	}
+	if (strlen(filter)!=8){
+		return ERR_NO_DATA;
+	}
+	unsigned char wildcard = 0;
+	unsigned char filter_mask = 0;
+	//construct bitmasks
+	for (int i=0; i<8; i++){
+		if (filter[i] == '1'){
+			filter_mask = (filter_mask | (1 << (7-i)));
+		} else if (filter[i] == '*'){
+			wildcard = wildcard | (1 << (7-i));
+		} else if (filter[i] != '0'){
+			return ERR_NO_DATA;
+		}
+	}
+	filter_mask = ~filter_mask;
+	dest->size = 0;
+	//check statuses
+	for (int n=0; n<src->size; n++){
+		if(((filter_mask ^ src->subsystems[n].status) | wildcard)==255){
+			dest->subsystems[dest->size] = src->subsystems[n];
+			dest->size++;
+		}
+	}
 	return ERR_SUCCESS;
 }
 
