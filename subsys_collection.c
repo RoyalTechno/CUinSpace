@@ -102,11 +102,15 @@ int subsys_collection_print(SubsystemCollection *subsystems){
 	Returns:
 		- ERR_NULL_POINTER if subsystems is NULL
 		- ERR_INVALID_INDEX if index is outside of expected range
+		- ERR_NO_DATA if there is no systems to remove
 		- ERR_SUCCESS if there is no error
 */
 int subsys_remove(SubsystemCollection *subsystems, int index){
 	if (subsystems==NULL){
 		return ERR_NULL_POINTER;
+	}
+	if (subsystems->size==0){
+		return ERR_NO_DATA;
 	}
 	if (index < 0 || index >= subsystems->size){
 		return ERR_INVALID_INDEX;
@@ -129,7 +133,7 @@ int subsys_remove(SubsystemCollection *subsystems, int index){
 	Returns:
 		- ERR_NULL_POINTER if src or dest or filter is NULL
 		- ERR_SUCCESS if there is no error
-		- ERR_NO_DATA if the filter string is invalid
+		- ERR_NO_DATA if the filter string has no matching data
 */
 int subsys_filter(const SubsystemCollection *src, SubsystemCollection *dest, const unsigned char *filter){
 	if (src==NULL||dest==NULL||filter==NULL){
