@@ -18,24 +18,89 @@ int print_menu(int *choice);
 int main() {
     // Use a while loop to print the menu for the user and call the appropriate functions.
     // The definitions above are provided to assist with this.
+    //initialize all needed variables and structures
     int query;
+    int result=0;
+    unsigned char status_id;
+    unsigned char status_value;
+    unsigned int data;
+    char cur_name[MAX_STR];
+    SubsystemCollection systems;
+    subsys_collection_init(&systems);
     
     while (print_menu(&query)==ERR_SUCCESS){
     	if (query==MENU_ADD){
+		    printf("Enter subsystem name (no spaces): ");
+		    scanf("%s", cur_name);
+		    while (getchar() != '\n');
+		    //create system and append
+		    Subsystem cur_sys;
+		    subsys_init(&cur_sys,cur_name,0);
+		    result = subsys_append(&systems,&cur_sys);
+		    if(result==ERR_MAX_CAPACITY){
+		    	printf("Error: Max System Capacity Reached.\n");
+		    }
+		    printf("System added successfully.\n");
+		    
     	} else if (query==MENU_PRINT){
+		    printf("Enter subsystem name to print: ");
+		    scanf("%s", cur_name);
+		    while (getchar() != '\n');
+		    //print cur_name system in collection
+		    result = subsys_find(&systems,cur_name);
+		    if (result==ERR_SYS_NOT_FOUND){
+		    	printf("Error: System Not Found. Please try again.\n");
+		    	continue;
+		    }
+		    printf("\n");
+		    subsys_print(&(systems.subsystems[result]));
+		    
     	} else if (query==MENU_PRINTALL){
+    		//print all subsystems in collection
+		    printf("\n");
+    		subsys_collection_print(&systems);
+    		
     	} else if (query==MENU_STATUS){
+    		printf("Enter: <Subsystem Name> <Status ID, 7,6,5,4,2, or 0)> <New Value (0-3)>: ");
+		    scanf("%s %hhu %hhu",cur_name,&status_id,&status_value);
+		    while (getchar() != '\n');
+		    //find valid system
+		    result = subsys_find(&systems,cur_name);
+		    if (result==ERR_SYS_NOT_FOUND){
+		    	printf("Error: System Not Found. Please try again.\n");
+		    	continue;
+		    } //set status of system
+		    result = subsys_status_set(&(systems.subsystems[result]),status_id,status_value);
+		    if (result==ERR_INVALID_STATUS){
+		    	printf("Error: Status ID or Value Invalid. Please try again.\n");
+		    }
+		    printf("Status updated successfully.\n");
+		    
     	} else if (query==MENU_REMOVE){
+    	
     	} else if (query==MENU_FILTER){
+    	
     	} else if (query==MENU_DATA){
+    		printf("Enter: <Subsystem Name> <Data, uppercase hex without 0x>: ");
+		    scanf("%s %X",cur_name,&data);
+		    while (getchar() != '\n');
+    		//find valid system
+		    result = subsys_find(&systems,cur_name);
+		    if (result==ERR_SYS_NOT_FOUND){
+		    	printf("Error: System Not Found. Please try again.\n");
+		    	continue;
+		    } //set data of system
+		    subsys_data_set(&(systems.subsystems[result]),data,NULL);
+		    printf("Data updated successfully.\n");
+		    
     	} else{
     		break;
     	}	
     }
-    
+    /*
     Subsystem sub;
     const char *n = "mike";
-    char j='j';
+    char j=0;
     printf("subsystem test: %d\n",subsys_init(&sub,n,j));
     
     Subsystem sub2;
@@ -86,6 +151,42 @@ int main() {
     const char *name = "bro";
     printf("find test: %s is at index %d\n",name,subsys_find(&col,name));
     subsys_collection_print(&col);
+    printf("status: %d\n",subsys_status_print(&sub));
+    unsigned char val = 0;
+    printf("status print test: %d\n",subsys_status_set(&sub,STATUS_POWER,val));
+    val = 2;
+    printf("status set test: %d\n",subsys_status_set(&sub,STATUS_DATA,val));
+    printf("status set test: %d\n",subsys_status_set(&sub,STATUS_ACTIVITY,val));
+    val = 0;
+    printf("status set test: %d\n",subsys_status_set(&sub,STATUS_ERROR,val));
+    val = 2;
+    printf("status set test: %d\n",subsys_status_set(&sub,STATUS_PERFORMANCE,val));
+    val = 1;
+    printf("status set test: %d\n",subsys_status_set(&sub,STATUS_RESOURCE,val));
+    printf("status print test: %d\n",subsys_status_print(&sub));
+    unsigned int old = 0;
+    printf("data set test: %d\n",subsys_data_set(&sub2,0x80FA,&old));
+    subsys_print(&sub2);
+    printf("old data: %u\n",old);
+    printf("data set test: %d\n",subsys_data_set(&sub2,2,&old));
+    subsys_print(&sub2);
+    printf("old data: %u\n",old);
+    printf("data set test w/ NULL: %d\n",subsys_data_set(&sub2,10,NULL));
+    subsys_print(&sub2);
+    printf("data get test: %d\n",subsys_data_get(&sub2,&old));
+    subsys_print(&sub2);
+    printf("data: %u\n",old);
+    printf("data get test: %d\n",subsys_data_get(&sub2,&old));
+    subsys_print(&sub2);
+    printf("data: %u\n",old);
+    printf("data set test: %d\n",subsys_data_set(&sub2,5,&old));
+    subsys_print(&sub2);
+    printf("data get test: %d\n",subsys_data_get(&sub2,&old));
+    subsys_print(&sub2);
+    printf("data: %u\n",old);
+    printf("data get test: %d\n",subsys_data_get(&sub2,&old));
+    subsys_print(&sub2);
+    */
     return ERR_SUCCESS;
 }
 
