@@ -91,3 +91,20 @@ int subsys_collection_print(SubsystemCollection *subsystems){
 	}
 	return ERR_SUCCESS;
 }
+
+
+
+int subsys_remove(SubsystemCollection *subsystems, int index){
+	return ERR_SUCCESS;
+}
+
+
+int subsys_filter(const SubsystemCollection *src, SubsystemCollection *dest, const unsigned char *filter){
+	return ERR_SUCCESS;
+}
+
+
+
+
+
+

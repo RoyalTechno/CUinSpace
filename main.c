@@ -12,7 +12,7 @@
 #define MENU_EXIT 0
 #define MENU_MIN 0
 #define MENU_MAX 7
-//gcc -o main main.c subsys.c subsys_collection.c subsystem.h
+
 int print_menu(int *choice);
 
 int main() {

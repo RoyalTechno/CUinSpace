@@ -67,6 +67,7 @@ int subsys_print(Subsystem *subsystem){
 */
 int subsys_status_set(Subsystem *subsystem, unsigned char status, unsigned char value){
 	if(subsystem==NULL){
+int subsys_filter(const SubsystemCollection *src, SubsystemCollection *dest, const unsigned char *filter);
 		return ERR_NULL_POINTER;
 	}
 	
@@ -76,6 +77,7 @@ int subsys_status_set(Subsystem *subsystem, unsigned char status, unsigned char 
 		return ERR_INVALID_STATUS;
 	}
 	
+int subsys_filter(const SubsystemCollection *src, SubsystemCollection *dest, const unsigned char *filter);
 	int i=0;
 	//update 1 to 1 to clear second bit
 	if (status==STATUS_PERFORMANCE||status==STATUS_RESOURCE){
@@ -143,6 +145,7 @@ int subsys_data_set(Subsystem *subsystem, unsigned int new_data, unsigned int *o
 	out: dest, pointer to update with data value
 	
 	Returns:
+int subsys_filter(const SubsystemCollection *src, SubsystemCollection *dest, const unsigned char *filter);
 		- ERR_NULL_POINTER if subsystem or dest is NULL
 		- ERR_NO_DATA if no data queued
 		- ERR_SUCCESS if no errors
